@@ -1,24 +1,29 @@
-#pragma comment(lib, "rpc.lib")
-
-#include <rpc/server.h>
+#if _DEBUG
+#pragma comment(lib, "sfml-system-d.lib")
+#pragma comment(lib, "sfml-network-d.lib")
+#else
+#pragma comment(lib, "sfml-system.lib")
+#pragma comment(lib, "sfml-network.lib")
+#endif
 
 #include <iostream>
 #include <string>
+#include "server.h"
 
-
-std::string foo() {
+sf::Packet foo() {
 	std::cout << "foo was called!" << std::endl;
-	return "You called foo!";
+	return sf::Packet();
 }
 
 int main(int argc, char* argv[])
 {
 	std::cout << "This is the server!" << std::endl;
-	rpc::server* server = new rpc::server(8081);
 
-	server->bind("foo", &foo);
+	Server server;
+	server.Bind("foo", foo);
+	server.Bind("foo", foo);
 
-	server->run();
+	while (true);
 
 	return 0;
 }

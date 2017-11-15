@@ -71,16 +71,16 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>..\rpclib\Debug;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\rpclib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\SFML-2.4.2\lib;..\rpclib\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\SFML-2.4.2\include;..\rpclib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\rpclib\Release;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\rpclib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\SFML-2.4.2\lib;..\rpclib\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\SFML-2.4.2\include;..\rpclib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -147,6 +147,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Server.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
