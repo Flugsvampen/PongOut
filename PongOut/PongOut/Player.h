@@ -8,8 +8,6 @@ public:
 	void Initialize();
 
 private:
-	void Send();
-	void Receive();
-	void Draw();
+
 };
 

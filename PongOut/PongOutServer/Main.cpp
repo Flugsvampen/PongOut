@@ -10,18 +10,13 @@
 #include <string>
 #include "server.h"
 
-sf::Packet foo() {
-	std::cout << "foo was called!" << std::endl;
-	return sf::Packet();
-}
-
 int main(int argc, char* argv[])
 {
 	std::cout << "This is the server!" << std::endl;
 
 	Server server;
-	server.Bind("foo", foo);
-	server.Bind("foo", foo);
+
+	server.Receive();
 
 	while (true);
 

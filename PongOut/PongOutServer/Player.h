@@ -11,6 +11,6 @@ public:
 	const unsigned short GetPort() const;
 
 private:
-	sf::IpAddress m_ip;
-	unsigned short m_port;
+	sf::IpAddress ip;
+	unsigned short port;
 };

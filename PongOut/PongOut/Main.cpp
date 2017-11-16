@@ -10,43 +10,12 @@
 #pragma comment(lib, "sfml-network.lib")
 #endif
 
-#include <chrono>
-#include <iostream>
-
-#include <SFML/Graphics.hpp>
-
-#include "Player.h"
+#include "Game.h"
 
 int main(int argc, char* argv[])
 {
-	std::cout << "This is the client!" << std::endl;
-
-	sf::RenderWindow window(sf::VideoMode(800, 600), "PongOut");
-	window.setFramerateLimit(60);
-
-	Player player;
-
-	player.Initialize();
-
-	while (window.isOpen())
-	{
-		// Event processing
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			// Request for closing the window
-			if (event.type == sf::Event::Closed)
-			{
-				window.close();
-			}
-		}
-
-		// Clear the whole window before rendering a new frame
-		window.clear();
-
-		// End the current frame and display its contents on screen
-		window.display();
-	}
+	Game game;
+	game.Run();
 
 	return 0;
 }

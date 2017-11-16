@@ -5,7 +5,7 @@
 #include <vector>
 #include <SFML\Network.hpp>
 
-using ServerFunction = std::function<sf::Packet(void)>;
+using ServerFunction = std::function<sf::Packet(sf::Packet)>;
 using StringFunctionPair = std::pair<std::string, ServerFunction>;
 using StringToFunctionMap = std::unordered_map<std::string, ServerFunction>;
 
@@ -18,11 +18,11 @@ public:
 
 	bool Bind(const std::string& name, ServerFunction func);
 	void Receive();
-	void Call(const std::string& func, ...);
+	void Call(const std::string& func);
 
 private:
-	sf::UdpSocket m_socket;
-	std::unordered_map<std::string, ServerFunction> m_functionMap;
+	sf::UdpSocket socket;
+	StringToFunctionMap functionMap;
 	std::vector<class Player*> players;
 	Player* FindPlayer(const sf::IpAddress& ip, const unsigned short port);
 

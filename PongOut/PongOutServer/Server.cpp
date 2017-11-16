@@ -3,11 +3,12 @@
 
 #include <iostream>
 
-
+const unsigned short SERVER_PORT = 8080;
 const unsigned short MAX_AMOUNT_OF_PLAYERS = 2;
 
 Server::Server()
 {
+	socket.bind(SERVER_PORT);
 }
 
 
@@ -19,32 +20,35 @@ Server::~Server()
 bool Server::Bind(const std::string& name, ServerFunction func)
 {
 	// Checks if the key string is already in use
-	if (!FoundInFunctionMap(name))
+	if (FoundInFunctionMap(name))
 	{
 		std::cout << "The key name \"" << name << "\" has already been bound to a function" << std::endl;
 		return false;
 	}
 
 	// Inserts the new name and function in the map
-	m_functionMap.insert(StringFunctionPair(name, func));
+	functionMap.insert(StringFunctionPair(name, func));
 	return true;
 }
 
 // This is where the server socket receives data from the client
 void Server::Receive()
 {
-	char buffer[1024];
-	size_t size;
+	sf::Packet packet;
 	sf::IpAddress senderIP;
 	unsigned short senderPort;
-
-	std::string message;
+	std::string funcName;
 
 	while (true)
 	{
 		// Receives data from the client
-		m_socket.receive(buffer, sizeof(buffer), size, senderIP, senderPort);
-		message = buffer;
+		socket.receive(packet, senderIP, senderPort);
+
+		if (!(packet >> funcName))
+		{
+			std::cerr << "Message from " << senderIP.toString() << " was not valid!" << std::endl;
+			continue;
+		}
 
 		// Checks if the address and port trying to connect is already in use
 		Player* player = FindPlayer(senderIP, senderPort);
@@ -59,9 +63,14 @@ void Server::Receive()
 				players.push_back(player);
 
 				/* DO PLAYER SPAWNING STUFF */
-				if (buffer == "connect")
+				if (funcName == "connect")
 				{
 					std::cout << "Player from " << senderIP.toString() << " connected" << std::endl;
+
+					sf::Packet packet;
+					packet << "connect";
+
+					Send(packet, senderIP, senderPort);
 				}
 				continue;
 			}
@@ -77,28 +86,27 @@ void Server::Receive()
 		}
 
 		// Checks if the function exists
-		if (!FoundInFunctionMap(message))
-		{ continue; }
+		if (!FoundInFunctionMap(funcName))
+			continue;
 		
-		sf::Packet packet = m_functionMap[message]();
+		sf::Packet answerPacket = functionMap[funcName](packet);
 
 		// Checks if we need to send any data back to the client
 		if(packet.getDataSize() <= 0)
-		{ continue; }
+			continue;
 
-		
-		Send(packet, senderIP, senderPort);
+		Send(answerPacket, senderIP, senderPort);
 	}
 }
 
 
 void Server::Send(sf::Packet& packet, const sf::IpAddress& ip, unsigned short port)
 {
-	m_socket.send(packet, ip, port);
+	socket.send(packet, ip, port);
 }
 
 
-Player * Server::FindPlayer(const sf::IpAddress & ip, const unsigned short port)
+Player* Server::FindPlayer(const sf::IpAddress & ip, const unsigned short port)
 {
 	for (auto player : players)
 	{
@@ -112,5 +120,5 @@ Player * Server::FindPlayer(const sf::IpAddress & ip, const unsigned short port)
 // Checks if the key is used in functionMap
 bool Server::FoundInFunctionMap(const std::string& name)
 {
-	return m_functionMap.find(name) == m_functionMap.end();
+	return functionMap.find(name) != functionMap.end();
 }
