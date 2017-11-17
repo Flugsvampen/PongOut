@@ -1,21 +1,21 @@
 #include "Game.h"
 #include "NetworkManager.h"
+#include "Player.h"
+#include "PacketOverloads.h"
+#include "Keyboard.h"
 
 #include <iostream>
 #include <thread>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 
-std::vector<sf::Drawable*> Game::drawables;
 
 Game::Game()
 {
-	Bind("connect", std::bind(&Game::Connect, this, sf::Packet()));
-	sf::Packet packet;
-	packet << "packet message";
-	Call("connect", packet);
-	//std::thread run = std::thread(&Game::Run, this);
-	//run.join();
+	Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
+	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
+
+	Keyboard::Initialize();
 }
 
 
@@ -27,7 +27,7 @@ Game::~Game()
 void Game::Run()
 {
 	// Creates a network manager that takes care of receive and send calls
-	NetworkManager* manager = new NetworkManager();
+	NetworkManager* manager = new NetworkManager(*this);
 
 	// Creates the RenderWindow
 	sf::RenderWindow window(sf::VideoMode(800, 800), "PongOut - Client");
@@ -42,14 +42,19 @@ void Game::Run()
 			// Request for closing the window
 			if (event.type == sf::Event::Closed)
 				window.close();
+			else if (event.type == sf::Event::KeyPressed)
+			{
+				Keyboard::setKeyDown(event.key.code);
+			}
 		}
 		// Clear the whole window before rendering a new frame
-		window.clear();
+		window.clear(sf::Color::Transparent);
 
 		// Draws every drawable objects in the game
-		for (auto drawable : drawables)
+		for (auto gameObject : gameObjects)
 		{
-			window.draw(*drawable);
+			gameObject->Update();
+			window.draw(gameObject->GetShape());
 		}
 
 		// End the current frame and display its contents on screen
@@ -57,7 +62,20 @@ void Game::Run()
 	}
 }
 
+// Wrapper for calling functions in functionMap
+void Game::CallFunction(sf::Packet& packet)
+{
+	std::string name;
 
+	// If data couldn't be extracted from packet or if function couldn't be found in map
+	if (!(packet >> name) || !FoundInFunctionMap(name))
+		return;
+
+	// Calls function
+	functionMap[name](packet);
+}
+
+// Adds a function pointer to the functionMap
 bool Game::Bind(const std::string & name, GameFunction func)
 {
 	// Checks if the key string is already in use
@@ -73,7 +91,7 @@ bool Game::Bind(const std::string & name, GameFunction func)
 }
 
 
-void Game::Call(const std::string& func, sf::Packet packet)
+void Game::Call(const std::string& func, sf::Packet& packet)
 {
 	functionMap[func](packet);
 }
@@ -85,9 +103,31 @@ bool Game::FoundInFunctionMap(const std::string& name)
 }
 
 
-void Game::Connect(sf::Packet packet)
+void Game::Connect(sf::Packet& packet)
+{
+	std::string tag;
+	sf::Color color;
+	sf::Vector2f size;
+	sf::Vector2f pos;
+	int speed;
+	packet >> tag >> color >> size >> pos >> speed;
+
+	Player* player = new Player(tag, color, size, pos, speed);
+	gameObjects.push_back(player);
+}
+
+
+void Game::Message(sf::Packet & packet)
 {
 	std::string message;
 	packet >> message;
-	std::cout << "You connected to the server!" << message << std::endl;
+	std::cout << message << std::endl;
 }
+
+
+void Game::AddPlayer(sf::Packet & packet)
+{
+	
+}
+
+

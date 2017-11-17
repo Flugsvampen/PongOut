@@ -5,7 +5,7 @@
 #include <vector>
 #include <SFML\Network.hpp>
 
-using ServerFunction = std::function<sf::Packet(sf::Packet)>;
+using ServerFunction = std::function<sf::Packet(sf::Packet, class Player*)>;
 using StringFunctionPair = std::pair<std::string, ServerFunction>;
 using StringToFunctionMap = std::unordered_map<std::string, ServerFunction>;
 
@@ -28,5 +28,9 @@ private:
 
 	bool FoundInFunctionMap(const std::string& name);
 	void Send(sf::Packet& packet, const sf::IpAddress& ip, unsigned short port);
+	
+	/* functionMap functions */
+	sf::Packet Connect(sf::Packet& packet, class Player* player);
+	sf::Packet MovePlayer(sf::Packet& packet, class Player* player);
 };
 
