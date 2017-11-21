@@ -9,7 +9,7 @@
 class Player : public GameObject
 {
 public:
-	Player(const std::string& t, const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos, const int spd);
+	Player(const sf::Vector2f& pos);
 	~Player();
 
 	void Update() override;

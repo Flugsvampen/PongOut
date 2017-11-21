@@ -1,13 +1,11 @@
 #pragma once
-#include "Game.h"
-
 #include <SFML\Network.hpp>
 #include <thread>
 
 class NetworkManager
 {
 public:	
-	NetworkManager(Game& g);
+	NetworkManager(class Game* g);
 	~NetworkManager();
 
 private:
@@ -17,7 +15,7 @@ private:
 	sf::IpAddress serverIP;
 	std::thread* receive;
 
-	Game& game;
+	class Game* game;
 
 	bool running;
 

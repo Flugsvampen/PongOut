@@ -10,15 +10,15 @@
 
 #include <iostream>
 #include <string>
-#include "server.h"
+#include "Game.h"
 
 
 int main(int argc, char* argv[])
 {
 	std::cout << "This is the server!" << std::endl;
 
-	Server server;
-	server.Receive();
+	Game game;
+	game.Run();
 
 	while (true);
 

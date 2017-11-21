@@ -1,11 +1,15 @@
 #include "Player.h"
 
 
-Player::Player(const int nr, const sf::IpAddress& ip, const unsigned short port, const std::string& t,
-	const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos,
-	const int spd) :
-	GameObject::GameObject(t, color, size, pos),
-	speed(spd),
+std::string PLAYER_TAG = "player";
+sf::Color START_COLOR = sf::Color::Green;
+sf::Vector2f START_SIZE = sf::Vector2f(100, 25);
+float START_SPEED = 25;
+
+Player::Player(const int nr, const sf::IpAddress& ip, const unsigned short port, const sf::Vector2f& pos) :
+	GameObject::GameObject(PLAYER_TAG, START_COLOR, START_SIZE, pos),
+	playerNr(nr),
+	speed(START_SPEED),
 	ip(ip),
 	port(port)
 {

@@ -14,6 +14,8 @@ Game::Game()
 {
 	Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
 	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
+	Bind("addPlayer", std::bind(&Game::AddPlayer, this, std::placeholders::_1));
+	Bind("move", std::bind(&Game::MoveObject, this, std::placeholders::_1));
 
 	Keyboard::Initialize();
 }
@@ -27,7 +29,7 @@ Game::~Game()
 void Game::Run()
 {
 	// Creates a network manager that takes care of receive and send calls
-	NetworkManager* manager = new NetworkManager(*this);
+	NetworkManager* manager = new NetworkManager(this);
 
 	// Creates the RenderWindow
 	sf::RenderWindow window(sf::VideoMode(800, 800), "PongOut - Client");
@@ -48,13 +50,15 @@ void Game::Run()
 			}
 		}
 		// Clear the whole window before rendering a new frame
-		window.clear(sf::Color::Transparent);
+		window.clear(sf::Color::Black);
 
 		// Draws every drawable objects in the game
-		for (auto gameObject : gameObjects)
+		for (auto it : objectMap)
 		{
-			gameObject->Update();
-			window.draw(gameObject->GetShape());
+			GameObject* obj = it.second;
+
+			obj->Update();
+			window.draw(obj->GetShape());
 		}
 
 		// End the current frame and display its contents on screen
@@ -96,6 +100,13 @@ void Game::Call(const std::string& func, sf::Packet& packet)
 	functionMap[func](packet);
 }
 
+// Adds the parameter object to the object map and uses its tag as the key value
+void Game::AddObjectToMap(GameObject* obj)
+{
+	objectMap.insert(StringToObjPair(obj->GetTag(), obj));
+}
+
+
 // Checks if the key is used in functionMap
 bool Game::FoundInFunctionMap(const std::string& name)
 {
@@ -105,15 +116,11 @@ bool Game::FoundInFunctionMap(const std::string& name)
 
 void Game::Connect(sf::Packet& packet)
 {
-	std::string tag;
-	sf::Color color;
-	sf::Vector2f size;
 	sf::Vector2f pos;
-	int speed;
-	packet >> tag >> color >> size >> pos >> speed;
+	packet >> pos;
 
-	Player* player = new Player(tag, color, size, pos, speed);
-	gameObjects.push_back(player);
+	player = new Player(pos);
+	AddObjectToMap(player);
 }
 
 
@@ -127,7 +134,30 @@ void Game::Message(sf::Packet & packet)
 
 void Game::AddPlayer(sf::Packet & packet)
 {
-	
+	if (player == nullptr)
+	{
+		Connect(packet);
+	}
+
+	sf::Vector2f otherPos;
+	packet >> otherPos;
+
+	GameObject* otherPlayer = new GameObject("player2", player->GetColor(),
+		player->GetSize(), otherPos);
+
+	AddObjectToMap(otherPlayer);
 }
 
+void Game::MoveObject(sf::Packet& packet)
+{
+	std::string objName;
+	sf::Vector2f position;
+	if (!(packet >> objName >> position))
+		return;
+	
+	auto it = objectMap.find(objName);
+	if (it == objectMap.end())
+		return;
 
+	it->second->SetPosition(position);
+}

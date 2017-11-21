@@ -5,9 +5,7 @@
 class Player : public GameObject
 {
 public:
-	Player(const int nr, const sf::IpAddress& ip, const unsigned short port, const std::string& t,
-		const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos,
-		const int spd);
+	Player(const int nr, const sf::IpAddress& ip, const unsigned short port, const sf::Vector2f& pos);
 	~Player();
 
 	const sf::IpAddress& GetIP() const;

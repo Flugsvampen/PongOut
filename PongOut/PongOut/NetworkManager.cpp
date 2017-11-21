@@ -1,12 +1,13 @@
 #include "NetworkManager.h"
 #include "Player.h"
+#include "Game.h"
 
 #include <iostream>
 #include <chrono>
 
 const unsigned short SERVER_PORT = 8080;
 
-NetworkManager::NetworkManager(Game& g) :
+NetworkManager::NetworkManager(Game* g) :
 	running(true),
 	game(g)
 {
@@ -40,12 +41,10 @@ void NetworkManager::Receive()
 	while (running)
 	{
 		// Tries to receive a message and checks if it got through
-		sf::Socket::Status status = socket.receive(packet, ip, port);
-		if (status != sf::Socket::Done)
-			continue;
+		socket.receive(packet, ip, port);
 
 		// Calls the functionMap in the Game class
-		game.CallFunction(packet);
+		game->CallFunction(packet);
 	}
 }
 
@@ -66,13 +65,13 @@ void NetworkManager::Initialize()
 {
 	while (true)
 	{
-		std::cout << "Write the address of the server you want to connect to: ";
+		std::cout << "Write the address of the server you want to connect to: " << std::endl;
 		//std::cin >> serverIP;
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+
 		serverIP = "127.0.0.1";
 		sf::Packet packet;
 		packet << "connect";
-
+		std::cout << "Connecting...";
 		if (Send(packet, serverIP) == sf::Socket::Done)
 		{
 			break;
