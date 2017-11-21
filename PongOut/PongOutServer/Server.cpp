@@ -127,19 +127,27 @@ void Server::Connect(sf::Packet& packet, Player* player)
 // Moves the player that called the server
 void Server::MovePlayer(sf::Packet& packet, Player* player)
 {
-	int direction;
+	float direction;
 	packet >> direction;
 	player->Move(player->GetSpeed() * direction);
-	std::cout << player->GetPosition().x << std::endl;
+
+	if (player->GetPosition().x >= SCREEN_SIZE.x - player->GetSize().x)
+	{
+		player->SetPosition(SCREEN_SIZE.x - player->GetSize().x, player->GetPosition().y);
+	}
+	else if (player->GetPosition().x <= 0)
+	{
+		player->SetPosition(0, player->GetPosition().y);
+	}
 
 	packet.clear();
 
 	if (game->players.size() < 2)
 		return;
-	
+
 	int otherPlayer = 1 - player->GetNr();
 
-	game->framePackets[otherPlayer] << "move" << "player2" << sf::Vector2f(player->GetPosition());
+	game->framePackets.at(otherPlayer) << "move" << "player2" << sf::Vector2f(player->GetPosition());
 }
 
 // Tries to find the Player at the defined ip and port

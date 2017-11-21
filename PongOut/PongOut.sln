@@ -7,6 +7,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PongOut", "PongOut\PongOut.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PongOutServer", "PongOutServer\PongOutServer.vcxproj", "{AEADC261-DDA4-4492-A504-5EEF39AB5DDD}"
 EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "Pong-Out", "Debug\Pong-Out.exe", "{B2962D58-6B83-4B1E-AA9D-BB30BA35D5CE}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = D:\VisualStudioProjects\PongOut\PongOut\PongOut\Debug\PongOut-debug.exe
+		RemoteMachine = 3SE-SPEL-67
+		StartingDirectory = D:\VisualStudioProjects\PongOut\PongOut\PongOut\Debug
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +44,10 @@ Global
 		{AEADC261-DDA4-4492-A504-5EEF39AB5DDD}.Release|x64.Build.0 = Release|x64
 		{AEADC261-DDA4-4492-A504-5EEF39AB5DDD}.Release|x86.ActiveCfg = Release|Win32
 		{AEADC261-DDA4-4492-A504-5EEF39AB5DDD}.Release|x86.Build.0 = Release|Win32
+		{B2962D58-6B83-4B1E-AA9D-BB30BA35D5CE}.Debug|x64.ActiveCfg = Release|x86
+		{B2962D58-6B83-4B1E-AA9D-BB30BA35D5CE}.Debug|x86.ActiveCfg = Release|x86
+		{B2962D58-6B83-4B1E-AA9D-BB30BA35D5CE}.Release|x64.ActiveCfg = Release|x86
+		{B2962D58-6B83-4B1E-AA9D-BB30BA35D5CE}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

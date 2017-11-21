@@ -1,7 +1,7 @@
 #include "Game.h"
 #include "Server.h"
 #include "Player.h"
-
+#include <iostream>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
@@ -31,7 +31,7 @@ void Game::Run()
 			gameObject->Update();
 		}
 
-		SendFramePackets(server);
+		//SendFramePackets(server);
 	}
 }
 

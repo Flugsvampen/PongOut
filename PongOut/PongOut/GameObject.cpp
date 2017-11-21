@@ -17,6 +17,11 @@ GameObject::~GameObject()
 }
 
 
+void GameObject::Update(sf::Time dt)
+{
+}
+
+
 bool GameObject::CheckCollision(sf::RectangleShape other)
 {
 	return rect.getGlobalBounds().intersects(other.getGlobalBounds());
@@ -58,6 +63,7 @@ void GameObject::SetPosition(const sf::Vector2f & position)
 	rect.setPosition(position);
 }
 
+
 void GameObject::Move(const sf::Vector2f & movement)
 {
 	rect.setPosition(rect.getPosition() + movement);
@@ -67,8 +73,4 @@ void GameObject::Move(const sf::Vector2f & movement)
 void GameObject::Move(float x, float y)
 {
 	Move(sf::Vector2f(x, y));
-}
-
-void GameObject::Update()
-{
 }

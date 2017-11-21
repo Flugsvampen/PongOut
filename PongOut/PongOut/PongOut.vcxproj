@@ -73,6 +73,7 @@
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>..\SFML-2.4.2\lib;..\rpclib\Debug;$(LibraryPath)</LibraryPath>
     <IncludePath>..\SFML-2.4.2\include;..\rpclib\include;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)-debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>

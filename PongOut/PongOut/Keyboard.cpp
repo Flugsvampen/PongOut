@@ -16,6 +16,11 @@ void Keyboard::setKeyDown(sf::Keyboard::Key key)
 	keys[key] = true;
 }
 
+void Keyboard::setKeyUp(sf::Keyboard::Key key)
+{
+	keys[key] = false;
+}
+
 bool Keyboard::isKeyDown(sf::Keyboard::Key key)
 {
 	return keys[key];

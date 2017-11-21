@@ -13,6 +13,11 @@ public:
 
 	const int GetSpeed() const;
 	const int GetNr() const;
+	const sf::Vector2f& GetPosition() const;
+	const sf::Vector2f& GetSize() const;
+
+	void SetPosition(const float x, const float y);
+	void SetPosition(const sf::Vector2f pos);
 
 private:
 	sf::IpAddress ip;

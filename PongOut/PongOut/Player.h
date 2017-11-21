@@ -12,7 +12,7 @@ public:
 	Player(const sf::Vector2f& pos);
 	~Player();
 
-	void Update() override;
+	void Update(sf::Time dt) override;
 
 private:
 	int speed;

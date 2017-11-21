@@ -33,10 +33,15 @@ void Game::Run()
 
 	// Creates the RenderWindow
 	sf::RenderWindow window(sf::VideoMode(800, 800), "PongOut - Client");
+	window.setFramerateLimit(60);
+	sf::Clock clock;
+	sf::Time dt;
 
 	// The main loop - ends as soon as the window is closed
 	while (window.isOpen())
 	{
+		dt = clock.restart();
+
 		// Event processing
 		sf::Event event;
 		while (window.pollEvent(event))
@@ -48,6 +53,12 @@ void Game::Run()
 			{
 				Keyboard::setKeyDown(event.key.code);
 			}
+			else if (event.type == sf::Event::KeyReleased)
+			{
+				Keyboard::setKeyUp(event.key.code);
+			}
+			else if (event.type == sf::Event::LostFocus || event.type == sf::Event::GainedFocus)
+				Keyboard::clearKeys();
 		}
 		// Clear the whole window before rendering a new frame
 		window.clear(sf::Color::Black);
@@ -57,9 +68,10 @@ void Game::Run()
 		{
 			GameObject* obj = it.second;
 
-			obj->Update();
+			obj->Update(dt);
 			window.draw(obj->GetShape());
 		}
+
 
 		// End the current frame and display its contents on screen
 		window.display();
