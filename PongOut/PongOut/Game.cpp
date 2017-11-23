@@ -15,8 +15,7 @@ const int TICK_RATE = 1 / 60;
 
 Game::Game()
 {
-	//Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
-	Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
+	/* Binds the functionMap methods */
 	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
 	Bind("addPlayer", std::bind(&Game::AddPlayer, this, std::placeholders::_1));
 	Bind("move", std::bind(&Game::MoveObject, this, std::placeholders::_1));
@@ -78,10 +77,10 @@ void Game::Run()
 			obj->Update(dt);
 
 			for (auto it2 : objectMap)
-			{
+			{ 
 				obj->CheckCollision(*it2.second);
 			}
-
+			obj->UpdateLastPosition();
 			window.draw(obj->GetShape());
 		}
 
@@ -138,15 +137,13 @@ bool Game::FoundInFunctionMap(const std::string& name)
 }
 
 
-void Game::Connect(sf::Packet& packet)
+GameObject * Game::FindInObjectMap(const std::string & name)
 {
-	sf::Vector2f pos;
-	std::string tag;
-	packet >> pos >> tag;
+	auto it = objectMap.find(name);
+	if (it == objectMap.end())
+		return nullptr;
 
-	player = new Player(pos, tag);
-	AddObjectToMap(player);
-	AddObjectToMap(player->GetBall());
+	return it->second;
 }
 
 
@@ -160,29 +157,30 @@ void Game::Message(sf::Packet & packet)
 
 void Game::AddPlayer(sf::Packet & packet)
 {
+	int playerNr;
 	sf::Vector2f pos;
-	std::string tag;
-	std::string ballTag;
 
-	bool canInput = true;
+	packet >> pos >> playerNr;
 
-	for (int i = 0; i < 2; i++)
-	{
-		packet >> pos >> tag >> ballTag;
+	player = new Player(pos);
+	player->SetTag(player->GetTag() + std::to_string(playerNr));
+	player->GetBall()->SetTag(player->GetBall()->GetTag() + std::to_string(playerNr));
+		
+	AddObjectToMap(player->GetBall());
+	AddObjectToMap(player);
 
-		Player* newPlayer = new Player(pos, tag);
-		AddObjectToMap(newPlayer);
-		AddObjectToMap(newPlayer->GetBall());
-		newPlayer->SetCanInput(canInput);
-		newPlayer->GetBall()->SetTag(ballTag);
+	packet >> pos >> playerNr;
 
-		canInput = false;
-		if (i == 0)
-		{
-			player = newPlayer;
-		}
-	}
+	// We make the player from the other client a GameObject so they can't interact with this client
+	GameObject* otherPlayer = new GameObject("player" + std::to_string(playerNr), sf::Color::Green, sf::Vector2f(100, 25), pos);
+	// Same as with the other player
+	GameObject* ball = new GameObject("ball" + std::to_string(playerNr), sf::Color::Blue, sf::Vector2f(20, 20), sf::Vector2f(0, -100));
+
+	AddObjectToMap(otherPlayer);
+	AddObjectToMap(ball);
+		
 }
+
 
 void Game::MoveObject(sf::Packet& packet)
 {
@@ -191,9 +189,18 @@ void Game::MoveObject(sf::Packet& packet)
 	if (!(packet >> objName >> position))
 		return;
 	
-	auto it = objectMap.find(objName);
-	if (it == objectMap.end())
+	GameObject* obj = FindInObjectMap(objName);
+
+	obj->SetPosition(position);
+}
+
+
+void Game::Shoot(sf::Packet & packet)
+{
+	std::string objName;
+	if (!(packet >> objName))
 		return;
 
-	it->second->SetPosition(position);
+	Player* player = dynamic_cast<Player*>(FindInObjectMap(objName));
+	player->SetHasShot(true);
 }

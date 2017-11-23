@@ -24,8 +24,6 @@ public:
 	void Move(const sf::Vector2f& movement);
 	void Move(float x = 0, float y = 0);
 
-	virtual void Update(const sf::Time& dt);
-
 protected:
 	friend class Game;
 	static class Game* game;

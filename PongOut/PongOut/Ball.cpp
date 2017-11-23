@@ -15,7 +15,7 @@ Ball::Ball(const sf::Vector2f& pos, class Player* player) :
 	owner(player),
 	direction(sf::Vector2f(0, 0))
 {
-	tag.append(std::to_string(ballCount++));
+	//tag.append(std::to_string(ballCount++));
 	MoveToOwner();
 }
 
@@ -30,14 +30,9 @@ void Ball::Update(const sf::Time& dt)
 	Move(direction * speed * dt.asSeconds());
 	Bounce();
 
-	if (lastPos == rect.getPosition())
-		return;
-
-	for (int i = 0; i < 2; i++)
-		game->GetFramePacket(i) << "move" << tag << sf::Vector2f(GetPosition());
-
-
-	lastPos = rect.getPosition();
+	// If the position was changed we send the position to the other client
+	if (lastPos != rect.getPosition())
+		SendMoveCommand();
 }
 
 

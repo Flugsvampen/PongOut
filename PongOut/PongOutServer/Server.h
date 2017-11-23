@@ -15,7 +15,7 @@ class Server
 {
 	friend class Game;
 public:
-	Server(class Game* g);
+	Server();
 	~Server();
 
 	bool Bind(const std::string& name, ServerFunction func);
@@ -26,17 +26,15 @@ private:
 	sf::UdpSocket socket;
 	StringToFunctionMap functionMap;
 
-	std::thread* receive;
-	bool running;
-	class Game* game;
-
+	std::vector<class Player*> players;
 	class Player* FindPlayer(const sf::IpAddress & ip, const unsigned short port);
+
 	bool FoundInFunctionMap(const std::string& name);
 	void Send(sf::Packet& packet, const sf::IpAddress& ip, unsigned short port);
 	
 	/* functionMap functions */
 	void Connect(sf::Packet& packet, class Player* player);
-	void MovePlayer(sf::Packet& packet, class Player* player);
+	void Move(sf::Packet& packet, class Player* player);
 	void Shoot(sf::Packet& packet, class Player* player);
 };
 

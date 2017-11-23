@@ -41,6 +41,13 @@ void GameObject::OnCollision(const GameObject& other)
 {
 }
 
+void GameObject::SendMoveCommand()
+{
+	sf::Packet packet;
+	packet << "move" << tag << sf::Vector2f(GetPosition());
+	manager->Send(packet);
+}
+
 
 const sf::Vector2f & GameObject::GetSize() const
 {
@@ -98,4 +105,9 @@ void GameObject::Move(const sf::Vector2f & movement)
 void GameObject::Move(float x, float y)
 {
 	Move(sf::Vector2f(x, y));
+}
+
+void GameObject::UpdateLastPosition()
+{
+	lastPos = rect.getPosition();
 }

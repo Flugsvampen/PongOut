@@ -30,16 +30,17 @@ private:
 
 	bool Bind(const std::string& name, GameFunction func);
 	bool FoundInFunctionMap(const std::string& name);
+	GameObject* FindInObjectMap(const std::string& name);
 	friend class Player;
 	void Call(const std::string& func, sf::Packet& packet);
 
 	void AddObjectToMap(class GameObject* obj);
 
 	/* functionMap methods */
-	void Connect(sf::Packet& packet);
 	void Message(sf::Packet& packet);
 	void AddPlayer(sf::Packet& packet);
 	void MoveObject(sf::Packet& packet);
+	void Shoot(sf::Packet& packet);
 
 	class Player* player;
 };

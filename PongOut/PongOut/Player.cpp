@@ -11,8 +11,8 @@ sf::Color START_COLOR = sf::Color::Green;
 sf::Vector2f START_SIZE = sf::Vector2f(100, 25);
 float START_SPEED = 400;
 
-Player::Player(const sf::Vector2f& pos, const std::string& tag) :
-	GameObject::GameObject(tag, START_COLOR, START_SIZE, pos),
+Player::Player(const sf::Vector2f& pos) :
+	GameObject::GameObject(PLAYER_TAG, START_COLOR, START_SIZE, pos),
 	speed(START_SPEED),
 	canInput(true),
 	hasShot(false)
@@ -39,23 +39,15 @@ void Player::Update(const sf::Time& dt)
 	{
 		if (Keyboard::isKeyDown(sf::Keyboard::Space) && canInput)
 		{
-			if (!hasShot)
-			{
-				ball->Shoot(direction);
-				hasShot = true;
-			}
-
-			sf::Packet packet;
-			packet << "move" << direction;
-			manager->Send(packet);
+			ball->Shoot(direction);
+			hasShot = true;
 		}
+
+		ball->MoveToOwner();
 	}
 	
-	if (movement == 0)
-		return;
-	sf::Packet packet;
-	packet << "move" << movement;
-	manager->Send(packet);
+	if (lastPos != rect.getPosition())
+		SendMoveCommand();
 }
 
 
@@ -68,6 +60,12 @@ Ball* Player::GetBall() const
 void Player::SetCanInput(bool can)
 {
 	canInput = can;
+}
+
+
+void Player::SetHasShot(bool has)
+{
+	hasShot = has;
 }
 
 

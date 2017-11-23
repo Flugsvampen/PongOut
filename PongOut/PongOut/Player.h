@@ -9,13 +9,14 @@
 class Player : public GameObject
 {
 public:
-	Player(const sf::Vector2f& pos, const std::string& tag);
+	Player(const sf::Vector2f& pos);
 	~Player();
 
 	void Update(const sf::Time& dt) override;
 	class Ball* GetBall() const;
 
 	void SetCanInput(bool can);
+	void SetHasShot(bool has);
 
 private:
 	int speed;

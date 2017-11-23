@@ -13,8 +13,6 @@ const float TICK_RATE = 1 / 60;
 Game::Game() :
 	running(true)
 {
-	GameObject::game = this;
-
 	framePackets.push_back(sf::Packet());
 	framePackets.push_back(sf::Packet());
 }
@@ -28,7 +26,7 @@ Game::~Game()
 void Game::Run()
 {
 	// Creates a network manager that takes care of receive and send calls
-	Server* server = new Server(this);
+	//Server* server = new Server(this);
 
 	sf::Clock clock;
 	sf::Time dt;
@@ -41,16 +39,16 @@ void Game::Run()
 
 		dt = clock.restart();
 
-		server->Receive();
+		//server->Receive();
 
 		// Draws every drawable objects in the game
 		for (auto it : objectMap)
 		{
 			GameObject* gameObject = it.second;	
-			gameObject->Update(dt);
+			//gameObject->Update(dt);
 		}
 
-		SendFramePackets(server);
+		//SendFramePackets(server);
 	}
 }
 
@@ -75,5 +73,5 @@ void Game::SendFramePackets(Server* server)
 // Adds the parameter object to the object map and uses its tag as the key value
 void Game::AddObjectToMap(GameObject* obj)
 {
-	objectMap.insert(StringToObjPair(obj->GetTag(), obj));
+	//objectMap.insert(StringToObjPair(obj->GetTag(), obj));
 }

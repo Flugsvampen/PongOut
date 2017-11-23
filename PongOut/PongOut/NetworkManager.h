@@ -9,7 +9,7 @@ public:
 	~NetworkManager();
 
 private:
-	friend class Player;
+	friend class GameObject;
 
 	sf::UdpSocket socket;
 	sf::IpAddress serverIP;

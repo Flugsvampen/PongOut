@@ -89,8 +89,3 @@ void GameObject::Move(float x, float y)
 {
 	Move(sf::Vector2f(x, y));
 }
-
-
-void GameObject::Update(const sf::Time& dt)
-{
-}

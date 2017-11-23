@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "PacketOverloads.h"
 
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -24,6 +25,7 @@ public:
 	void SetPosition(const float x, const float y);
 	void Move(const sf::Vector2f& movement);
 	void Move(float x = 0, float y = 0);
+	void UpdateLastPosition();
 
 
 protected:
@@ -33,5 +35,7 @@ protected:
 	sf::RectangleShape rect;
 	std::string tag;
 	sf::Vector2f lastPos;
+
+	void SendMoveCommand();
 };
 

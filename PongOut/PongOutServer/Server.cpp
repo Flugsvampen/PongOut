@@ -1,37 +1,27 @@
 #include "Server.h"
 #include "PacketOverloads.h"
 #include "Player.h"
-#include "Game.h"
-#include "Ball.h"
 
 #include <iostream>
 #include <thread>
 
 const unsigned short SERVER_PORT = 8080;
 const unsigned short MAX_AMOUNT_OF_PLAYERS = 2;
-const sf::Vector2u SCREEN_SIZE = sf::Vector2u(800, 800);
+const sf::Vector2f SCREEN_SIZE = sf::Vector2f(800, 800);
+const sf::Vector2f PLAYER_SIZE = sf::Vector2f(100, 25);
 
-Server::Server(Game* g) :
-	running(true),
-	game(g)
+Server::Server()
 {
 	socket.bind(SERVER_PORT);
-	socket.setBlocking(false);
 
 	Bind("connect", std::bind(&Server::Connect, this, std::placeholders::_1, std::placeholders::_2));
-	Bind("move", std::bind(&Server::MovePlayer, this, std::placeholders::_1, std::placeholders::_2));
+	Bind("move", std::bind(&Server::Move, this, std::placeholders::_1, std::placeholders::_2));
 	Bind("shoot", std::bind(&Server::Shoot, this, std::placeholders::_1, std::placeholders::_2));
-
-	//receive = new std::thread(&Server::Receive, this);
 }
 
 
 Server::~Server()
 {
-	running = false;
-	receive->join();
-	delete receive;
-	receive = nullptr;
 }
 
 // Inserts a function at the given name in the functionMap
@@ -57,10 +47,9 @@ void Server::Receive()
 	unsigned short senderPort;
 	std::string funcName;
 
-	//while (running)
-	//{
+	while (true)
+	{
 		// Receives data from the client
-		// TODO: Check return value
 		if (socket.receive(packet, senderIP, senderPort) != sf::Socket::Done)
 			return;
 
@@ -68,44 +57,43 @@ void Server::Receive()
 		if (!(packet >> funcName))
 		{
 			std::cerr << "Message from " << senderIP.toString() << " was not valid!" << std::endl;
-			return; //continue;
+			continue;
 		}
 
 		// Checks if the address and port trying to connect is already in use
 		Player* player = FindPlayer(senderIP, senderPort);
 
 		// Checks if the server is not full
-		if(game->players.size() < MAX_AMOUNT_OF_PLAYERS)
+		if(players.size() < MAX_AMOUNT_OF_PLAYERS)
 		{ 			
 			if (player == nullptr)
 			{
-				sf::Vector2f size = sf::Vector2f(100, 25);
-				
-				sf::Vector2f pos = sf::Vector2f(SCREEN_SIZE.x / 2 - size.x * 0.5f, SCREEN_SIZE.y - size.y * 1.5f);
-				
-				if (game->players.size() == 1)
-					pos.y = size.y * 0.5f;
-
 				// Creates new player
-				player = new Player(game->players.size(), senderIP, senderPort, pos);
-				game->players.push_back(player);
-				game->AddObjectToMap(player);
-				game->AddObjectToMap(player->GetBall());
+				player = new Player(senderIP, senderPort);
+				players.push_back(player);
 
-				if (game->players.size() == 2)
+				sf::Vector2f pos[2] = { sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
+					SCREEN_SIZE.y - PLAYER_SIZE.y * 1.5f),
+					sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
+						PLAYER_SIZE.y * 0.5f) };
+
+				if (players.size() == 2)
 				{
+					sf::Packet playerPackets[2] = { sf::Packet(), sf::Packet() };
 					for (int i = 0; i < 2; i++)
 					{
 						int j = 1 - i;
-						game->framePackets[i] << "addPlayer" <<
-							sf::Vector2f(game->players[i]->GetPosition()) <<
-							game->players[i]->GetTag() <<
-							game->players[i]->GetBall()->GetTag() <<
-							sf::Vector2f(game->players[j]->GetPosition()) <<
-							game->players[j]->GetTag() <<
-							game->players[j]->GetBall()->GetTag();
+						playerPackets[i] << "addPlayer" << 
+							pos[i] << players[i]->GetNr() << 
+							pos[j] << players[j]->GetNr();
+					}
+					for (int i = 0; i < 2; i++)
+					{
+						Send(playerPackets[i], players[i]->GetIP(), players[i]->GetPort());
 					}
 				}
+				std::cout << "Player from " << player->GetIP().toString() << " connected" << std::endl;
+				continue;
 			}
 		}
 		
@@ -115,11 +103,16 @@ void Server::Receive()
 			sf::Packet p;
 			p << "message" << "\nThis server is already full!";
 			Send(p, senderIP, senderPort);
+			
+			continue;
 		}
 		// Checks if the function exists
-		else if (FoundInFunctionMap(funcName))
-			functionMap[funcName](packet, player);
-	//}
+		//else if (FoundInFunctionMap(funcName))
+			//functionMap[funcName](packet, player);
+
+		Player* otherPlayer = players[1 - player->GetNr()];
+		Send(packet, otherPlayer->GetIP(), otherPlayer->GetPort());
+	}
 }
 
 // Sends message via our socket
@@ -137,31 +130,10 @@ void Server::Connect(sf::Packet& packet, Player* player)
 	//game->framePackets[player->GetNr()] << "connect" << sf::Vector2f(player->GetPosition());
 }
 
-// Moves the player that called the server
-void Server::MovePlayer(sf::Packet& packet, Player* player)
+
+void Server::Move(sf::Packet & packet, Player * player)
 {
-	float direction;
-	packet >> direction;
-	player->Move(player->GetSpeed() * direction);
 
-	if (player->GetPosition().x >= SCREEN_SIZE.x - player->GetSize().x)
-	{
-		player->SetPosition(SCREEN_SIZE.x - player->GetSize().x, player->GetPosition().y);
-	}
-	else if (player->GetPosition().x <= 0)
-	{
-		player->SetPosition(0, player->GetPosition().y);
-	}
-
-	packet.clear();
-
-	if (game->players.size() < 2)
-		return;
-
-	int otherPlayer = 1 - player->GetNr();
-
-	std::unique_lock<std::mutex> lock(game->framePacketsMutex);
-	game->framePackets.at(otherPlayer) << "move" << player->GetTag() << sf::Vector2f(player->GetPosition());
 }
 
 
@@ -170,14 +142,13 @@ void Server::Shoot(sf::Packet & packet, Player* player)
 	float direction;
 	packet >> direction;
 
-	direction = (direction < 0) ? -1 : 1;
-	player->Shoot(direction);
+	
 }
 
 // Tries to find the Player at the defined ip and port
 Player* Server::FindPlayer(const sf::IpAddress & ip, const unsigned short port)
 {
-	for (auto player : game->players)
+	for (auto player : players)
 	{
 		if (ip == player->GetIP() && port == player->GetPort())
 			return player;
