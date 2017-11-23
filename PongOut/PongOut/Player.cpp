@@ -29,23 +29,29 @@ Player::~Player()
 
 void Player::Update(const sf::Time& dt)
 {
+	// Checks from left/right input
 	float direction = CheckMoveInput();
 	float movement = direction * dt.asSeconds();
+
+	// Moves the player with the input value
 	Move(movement * speed);
 
 	ClampX();
 	
 	if (!hasShot)
 	{
+		// Shoots ball if Space is pressed
 		if (Keyboard::isKeyDown(sf::Keyboard::Space) && canInput)
 		{
 			ball->Shoot(direction);
 			hasShot = true;
 		}
 
+		// Makes the ball follow the player
 		ball->MoveToOwner();
 	}
 	
+	// If there was any movement
 	if (lastPos != rect.getPosition())
 		SendMoveCommand();
 }
@@ -83,6 +89,7 @@ int Player::CheckMoveInput()
 	return input;
 }
 
+// Clamps the player so it stays within the screen
 void Player::ClampX()
 {
 	if (rect.getPosition().x >= 800 - rect.getSize().x)

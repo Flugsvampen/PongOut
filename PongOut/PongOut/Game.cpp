@@ -17,7 +17,7 @@ Game::Game()
 {
 	/* Binds the functionMap methods */
 	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
-	Bind("addPlayer", std::bind(&Game::AddPlayer, this, std::placeholders::_1));
+	Bind("initializeGame", std::bind(&Game::InitializeGame, this, std::placeholders::_1));
 	Bind("move", std::bind(&Game::MoveObject, this, std::placeholders::_1));
 
 	Keyboard::Initialize();
@@ -69,17 +69,19 @@ void Game::Run()
 		// Clear the whole window before rendering a new frame
 		window.clear(sf::Color::Black);
 
-		// Draws every drawable objects in the game
+		// Updates all objects
 		for (auto it : objectMap)
 		{
 			GameObject* obj = it.second;
 
 			obj->Update(dt);
 
+			// Checks collision with every other object
 			for (auto it2 : objectMap)
 			{ 
 				obj->CheckCollision(*it2.second);
 			}
+
 			obj->UpdateLastPosition();
 			window.draw(obj->GetShape());
 		}
@@ -117,18 +119,11 @@ bool Game::Bind(const std::string & name, GameFunction func)
 	return true;
 }
 
-
-void Game::Call(const std::string& func, sf::Packet& packet)
-{
-	functionMap[func](packet);
-}
-
 // Adds the parameter object to the object map and uses its tag as the key value
 void Game::AddObjectToMap(GameObject* obj)
 {
 	objectMap.insert(StringToObjPair(obj->GetTag(), obj));
 }
-
 
 // Checks if the key is used in functionMap
 bool Game::FoundInFunctionMap(const std::string& name)
@@ -136,8 +131,8 @@ bool Game::FoundInFunctionMap(const std::string& name)
 	return functionMap.find(name) != functionMap.end();
 }
 
-
-GameObject * Game::FindInObjectMap(const std::string & name)
+// Searches for object and returns it
+GameObject* Game::FindInObjectMap(const std::string & name)
 {
 	auto it = objectMap.find(name);
 	if (it == objectMap.end())
@@ -146,7 +141,7 @@ GameObject * Game::FindInObjectMap(const std::string & name)
 	return it->second;
 }
 
-
+// Prints a message
 void Game::Message(sf::Packet & packet)
 {
 	std::string message;
@@ -154,18 +149,20 @@ void Game::Message(sf::Packet & packet)
 	std::cout << message << std::endl;
 }
 
-
-void Game::AddPlayer(sf::Packet & packet)
+// Adds all game objects to the game
+void Game::InitializeGame(sf::Packet & packet)
 {
 	int playerNr;
 	sf::Vector2f pos;
 
 	packet >> pos >> playerNr;
 
+	// A player is created and within the player constructor we create a ball
 	player = new Player(pos);
 	player->SetTag(player->GetTag() + std::to_string(playerNr));
 	player->GetBall()->SetTag(player->GetBall()->GetTag() + std::to_string(playerNr));
-		
+
+	// We add the player and ball to the objectMap
 	AddObjectToMap(player->GetBall());
 	AddObjectToMap(player);
 
@@ -173,15 +170,17 @@ void Game::AddPlayer(sf::Packet & packet)
 
 	// We make the player from the other client a GameObject so they can't interact with this client
 	GameObject* otherPlayer = new GameObject("player" + std::to_string(playerNr), sf::Color::Green, sf::Vector2f(100, 25), pos);
+
 	// Same as with the other player
 	GameObject* ball = new GameObject("ball" + std::to_string(playerNr), sf::Color::Blue, sf::Vector2f(20, 20), sf::Vector2f(0, -100));
 
+	// We add the "fake" ball and player to the objectMap
 	AddObjectToMap(otherPlayer);
 	AddObjectToMap(ball);
 		
 }
 
-
+// Finds an object via a tag and sets its position
 void Game::MoveObject(sf::Packet& packet)
 {
 	std::string objName;
@@ -192,15 +191,4 @@ void Game::MoveObject(sf::Packet& packet)
 	GameObject* obj = FindInObjectMap(objName);
 
 	obj->SetPosition(position);
-}
-
-
-void Game::Shoot(sf::Packet & packet)
-{
-	std::string objName;
-	if (!(packet >> objName))
-		return;
-
-	Player* player = dynamic_cast<Player*>(FindInObjectMap(objName));
-	player->SetHasShot(true);
 }

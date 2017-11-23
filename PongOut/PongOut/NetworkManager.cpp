@@ -17,13 +17,14 @@ NetworkManager::NetworkManager(Game* g) :
 
 	GameObject::manager = this;
 
+	// Opens thread for receiving messages
 	receive = new std::thread(&NetworkManager::Receive, this);
 }
 
 
 NetworkManager::~NetworkManager()
 {
-	// send signal
+	// Send signal
 	running = false;
 	receive->join();
 	delete receive;
@@ -31,6 +32,7 @@ NetworkManager::~NetworkManager()
 }
 
 
+// Recieves messages
 void NetworkManager::Receive()
 {
 	sf::Packet packet;
@@ -83,5 +85,4 @@ void NetworkManager::Initialize()
 		}
 	}
 }
-
 

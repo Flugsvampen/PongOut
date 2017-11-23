@@ -1,6 +1,7 @@
 #include "GameObject.h"
 #include "NetworkManager.h"
 
+// Is needed to send data from socket
 NetworkManager* GameObject::manager = nullptr;
 
 GameObject::GameObject(const std::string& t, const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos) :
@@ -18,7 +19,7 @@ GameObject::~GameObject()
 {
 }
 
-
+// Gets called every frame
 void GameObject::Update(const sf::Time& dt)
 {
 }
@@ -36,10 +37,11 @@ bool GameObject::CheckCollision(const GameObject& other)
 	return collided;
 }
 
-
+// Gets called from CheckCollision
 void GameObject::OnCollision(const GameObject& other)
 {
 }
+
 
 void GameObject::SendMoveCommand()
 {

@@ -28,6 +28,8 @@ Ball::~Ball()
 void Ball::Update(const sf::Time& dt)
 {
 	Move(direction * speed * dt.asSeconds());
+
+	// Checks for bouncing on the side walls
 	Bounce();
 
 	// If the position was changed we send the position to the other client
@@ -35,11 +37,13 @@ void Ball::Update(const sf::Time& dt)
 		SendMoveCommand();
 }
 
-
+// Sets position based on where the owner is
 void Ball::MoveToOwner()
 {
+	// If the player is on the bottom
 	if (owner->GetPosition().y < 400)
 		SetPosition(owner->GetPosition().x + owner->GetSize().x / 2 - rect.getSize().x / 2, owner->GetPosition().y + owner->GetSize().y);
+	// If the player is on the top
 	else if (owner->GetPosition().y > 400)
 		SetPosition(owner->GetPosition().x + owner->GetSize().x / 2 - rect.getSize().x / 2, owner->GetPosition().y - owner->GetSize().y);
 }
@@ -49,15 +53,17 @@ void Ball::Shoot(const float dirX)
 {
 	float dirY;
 
+	// Sets Y-direction based on if the player is on the top or bottom
 	if (owner->GetPosition().y < 400)
 		dirY = 1;
 	else
 		dirY = -1;
 
+	// Sets direction so it will begin to move
 	direction = sf::Vector2f(dirX, dirY);
 }
 
-
+// Flips X-direction and sets position to align on the hit wall
 void Ball::Bounce()
 {
 	if (rect.getPosition().x < 0)
@@ -73,8 +79,15 @@ void Ball::Bounce()
 }
 
 
+void Ball::CheckOOB()
+{
+
+}
+
+
 void Ball::OnCollision(const GameObject& other)
 {
+	// Flips Y-direction if a player was hit
 	if (other.GetTag().find("player") != other.GetTag().npos)
 	{
 		direction.y *= -1;

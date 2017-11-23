@@ -16,7 +16,6 @@
 
 int main(int argc, char* argv[])
 {
-	//std::this_thread::sleep_for(std::chrono::seconds(2));
 	Game game;
 	game.Run();
 

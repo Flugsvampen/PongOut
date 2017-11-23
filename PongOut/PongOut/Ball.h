@@ -14,7 +14,9 @@ public:
 
 private:
 	void Bounce();
+	void CheckOOB();
 	void OnCollision(const GameObject& other) override;
+	
 
 	float speed;
 	sf::Vector2f direction;

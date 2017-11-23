@@ -13,30 +13,11 @@ const sf::Vector2f PLAYER_SIZE = sf::Vector2f(100, 25);
 Server::Server()
 {
 	socket.bind(SERVER_PORT);
-
-	Bind("connect", std::bind(&Server::Connect, this, std::placeholders::_1, std::placeholders::_2));
-	Bind("move", std::bind(&Server::Move, this, std::placeholders::_1, std::placeholders::_2));
-	Bind("shoot", std::bind(&Server::Shoot, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 
 Server::~Server()
 {
-}
-
-// Inserts a function at the given name in the functionMap
-bool Server::Bind(const std::string& name, ServerFunction func)
-{
-	// Checks if the key string is already in use
-	if (FoundInFunctionMap(name))
-	{
-		std::cout << "The key name \"" << name << "\" has already been bound to a function" << std::endl;
-		return false;
-	}
-
-	// Inserts the new name and function in the map
-	functionMap.insert(StringFunctionPair(name, func));
-	return true;
 }
 
 // This is where the server socket receives data from the client
@@ -72,21 +53,27 @@ void Server::Receive()
 				player = new Player(senderIP, senderPort);
 				players.push_back(player);
 
-				sf::Vector2f pos[2] = { sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
-					SCREEN_SIZE.y - PLAYER_SIZE.y * 1.5f),
-					sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
-						PLAYER_SIZE.y * 0.5f) };
-
+				// If maximum amount of players is connected
 				if (players.size() == 2)
 				{
+					// Calculates positions for players
+					sf::Vector2f pos[2] = { sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
+						SCREEN_SIZE.y - PLAYER_SIZE.y * 1.5f),
+						sf::Vector2f(SCREEN_SIZE.x / 2 - PLAYER_SIZE.x * 0.5f,
+							PLAYER_SIZE.y * 0.5f) };
+
 					sf::Packet playerPackets[2] = { sf::Packet(), sf::Packet() };
+
+					// Feeds data into the two playerPackets
 					for (int i = 0; i < 2; i++)
 					{
 						int j = 1 - i;
-						playerPackets[i] << "addPlayer" << 
+						playerPackets[i] << "initializeGame" << 
 							pos[i] << players[i]->GetNr() << 
 							pos[j] << players[j]->GetNr();
 					}
+
+					// Sends the packets to the players
 					for (int i = 0; i < 2; i++)
 					{
 						Send(playerPackets[i], players[i]->GetIP(), players[i]->GetPort());
@@ -106,10 +93,8 @@ void Server::Receive()
 			
 			continue;
 		}
-		// Checks if the function exists
-		//else if (FoundInFunctionMap(funcName))
-			//functionMap[funcName](packet, player);
 
+		// Sends received data to the other player
 		Player* otherPlayer = players[1 - player->GetNr()];
 		Send(packet, otherPlayer->GetIP(), otherPlayer->GetPort());
 	}
@@ -119,30 +104,6 @@ void Server::Receive()
 void Server::Send(sf::Packet& packet, const sf::IpAddress& ip, unsigned short port)
 {
 	socket.send(packet, ip, port);
-}
-
-// Sends back a connection message to the player with data about the Player class
-void Server::Connect(sf::Packet& packet, Player* player)
-{
-	std::cout << "Player from " << player->GetIP().toString() << " connected" << std::endl;
-
-	// Packs all the data the player holds
-	//game->framePackets[player->GetNr()] << "connect" << sf::Vector2f(player->GetPosition());
-}
-
-
-void Server::Move(sf::Packet & packet, Player * player)
-{
-
-}
-
-
-void Server::Shoot(sf::Packet & packet, Player* player)
-{
-	float direction;
-	packet >> direction;
-
-	
 }
 
 // Tries to find the Player at the defined ip and port
@@ -155,10 +116,4 @@ Player* Server::FindPlayer(const sf::IpAddress & ip, const unsigned short port)
 	}
 
 	return nullptr;
-}
-
-// Checks if the key is used in functionMap
-bool Server::FoundInFunctionMap(const std::string& name)
-{
-	return functionMap.find(name) != functionMap.end();
 }

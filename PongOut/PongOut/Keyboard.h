@@ -1,3 +1,7 @@
+/*
+	Author: Håkan Levin Henriksson
+*/
+
 #pragma once
 
 #include <SFML\Window.hpp>

@@ -32,15 +32,13 @@ private:
 	bool FoundInFunctionMap(const std::string& name);
 	GameObject* FindInObjectMap(const std::string& name);
 	friend class Player;
-	void Call(const std::string& func, sf::Packet& packet);
 
 	void AddObjectToMap(class GameObject* obj);
 
 	/* functionMap methods */
 	void Message(sf::Packet& packet);
-	void AddPlayer(sf::Packet& packet);
+	void InitializeGame(sf::Packet& packet);
 	void MoveObject(sf::Packet& packet);
-	void Shoot(sf::Packet& packet);
 
 	class Player* player;
 };
