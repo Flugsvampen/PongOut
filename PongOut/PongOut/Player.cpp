@@ -10,6 +10,7 @@ std::string PLAYER_TAG = "player";
 sf::Color START_COLOR = sf::Color::Green;
 sf::Vector2f START_SIZE = sf::Vector2f(100, 25);
 float START_SPEED = 400;
+int START_HP = 5;
 
 Player::Player(const sf::Vector2f& pos) :
 	GameObject::GameObject(PLAYER_TAG, START_COLOR, START_SIZE, pos),
@@ -19,6 +20,7 @@ Player::Player(const sf::Vector2f& pos) :
 {
 	playerCount++;
 	ball = new Ball(pos, this);
+	hp = START_HP;
 }
 
 
@@ -100,6 +102,18 @@ void Player::ClampX()
 	{
 		rect.setPosition(0, rect.getPosition().y);
 	}
+}
+
+// Changes the player's hp and color
+void Player::TakeDamage(int damage)
+{
+	hp -= damage;
+	// Sets the players color based on how much hp they have
+	sf::Color c = sf::Color((255 / 5) * 5 - hp, (255 / 5) * hp, 0, 255);
+	rect.setFillColor(c);
+
+	// Sends the new color value to the other client
+	SendColorCommand();
 }
 
 

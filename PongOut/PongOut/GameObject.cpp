@@ -1,12 +1,15 @@
 #include "GameObject.h"
 #include "NetworkManager.h"
+#include "Game.h"
 
-// Is needed to send data from socket
+// Initializes static members
 NetworkManager* GameObject::manager = nullptr;
+Game* GameObject::game = nullptr;
 
 GameObject::GameObject(const std::string& t, const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos) :
 	tag(t),
-	rect(sf::RectangleShape(size))
+	rect(sf::RectangleShape(size)),
+	hp(-1)
 {
 	rect.setFillColor(color);
 	rect.setSize(size);
@@ -42,7 +45,7 @@ void GameObject::OnCollision(const GameObject& other)
 {
 }
 
-
+// Changes the position of this object in the other client
 void GameObject::SendMoveCommand()
 {
 	sf::Packet packet;
@@ -50,8 +53,31 @@ void GameObject::SendMoveCommand()
 	manager->Send(packet);
 }
 
+// Changes the color of this object in the other client
+void GameObject::SendColorCommand()
+{
+	sf::Packet packet;
+	packet << "changeColor" << tag << sf::Color(GetColor());
+	manager->Send(packet);
+}
 
-const sf::Vector2f & GameObject::GetSize() const
+
+void GameObject::SendDamageCommand(const int damage)
+{
+	sf::Packet packet;
+	packet << "damage" << tag << damage;
+	manager->Send(packet);
+}
+
+void GameObject::SendDamageCommand(const int damage, const std::string & objectTag)
+{
+	sf::Packet packet;
+	packet << "damage" << objectTag << damage;
+	manager->Send(packet);
+}
+
+
+const sf::Vector2f& GameObject::GetSize() const
 {
 	return rect.getSize();
 }
@@ -86,6 +112,13 @@ void GameObject::SetTag(const std::string & newTag)
 	tag = newTag;
 }
 
+
+void GameObject::SetColor(const sf::Color& color)
+{
+	rect.setFillColor(color);
+}
+
+
 void GameObject::SetPosition(const sf::Vector2f & position)
 {
 	rect.setPosition(position);
@@ -108,6 +141,12 @@ void GameObject::Move(float x, float y)
 {
 	Move(sf::Vector2f(x, y));
 }
+
+void GameObject::TakeDamage(const int damage)
+{
+	hp -= damage;
+}
+
 
 void GameObject::UpdateLastPosition()
 {

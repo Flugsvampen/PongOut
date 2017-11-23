@@ -21,6 +21,7 @@ public:
 
 	void Run();
 	void CallFunction(sf::Packet& packet);
+	std::vector<class GameObject*> GetPlayerObjects();
 
 	static sf::Packet framePacket;
 
@@ -39,7 +40,10 @@ private:
 	void Message(sf::Packet& packet);
 	void InitializeGame(sf::Packet& packet);
 	void MoveObject(sf::Packet& packet);
+	void ChangeColor(sf::Packet& packet);
+	void TakeDamage(sf::Packet& packet);
 
 	class Player* player;
+	std::vector<class GameObject*> playerObjects;
 };
 

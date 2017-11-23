@@ -15,11 +15,15 @@ const int TICK_RATE = 1 / 60;
 
 Game::Game()
 {
+	GameObject::game = this;
+
 	/* Binds the functionMap methods */
 	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
 	Bind("initializeGame", std::bind(&Game::InitializeGame, this, std::placeholders::_1));
 	Bind("move", std::bind(&Game::MoveObject, this, std::placeholders::_1));
-
+	Bind("changeColor", std::bind(&Game::ChangeColor, this, std::placeholders::_1));
+	Bind("damage", std::bind(&Game::TakeDamage, this, std::placeholders::_1));
+	
 	Keyboard::Initialize();
 }
 
@@ -104,6 +108,12 @@ void Game::CallFunction(sf::Packet& packet)
 	functionMap[name](packet);
 }
 
+
+std::vector<class GameObject*> Game::GetPlayerObjects()
+{
+	return playerObjects;
+}
+
 // Adds a function pointer to the functionMap
 bool Game::Bind(const std::string & name, GameFunction func)
 {
@@ -178,9 +188,12 @@ void Game::InitializeGame(sf::Packet & packet)
 	AddObjectToMap(otherPlayer);
 	AddObjectToMap(ball);
 		
+	// Adds the player and "fake" player in a vector
+	playerObjects.push_back(player);
+	playerObjects.push_back(otherPlayer);
 }
 
-// Finds an object via a tag and sets its position
+// Sets the position of the object found with the tag in the packet
 void Game::MoveObject(sf::Packet& packet)
 {
 	std::string objName;
@@ -189,6 +202,42 @@ void Game::MoveObject(sf::Packet& packet)
 		return;
 	
 	GameObject* obj = FindInObjectMap(objName);
+	if (obj == nullptr)
+		return;
 
 	obj->SetPosition(position);
+}
+
+// Sets the color of the object found with the tag in the packet
+void Game::ChangeColor(sf::Packet & packet)
+{
+	std::string objName;
+	sf::Color color;
+
+	packet >> objName >> color;
+
+	GameObject* obj = FindInObjectMap(objName);
+	if (obj == nullptr)
+		return;
+
+	obj->SetColor(color);
+}
+
+
+// Makes the object found with the tag in the packet take damage
+void Game::TakeDamage(sf::Packet & packet)
+{
+	std::string objName;
+	int damage;
+
+	packet >> objName >> damage;
+
+	GameObject* obj = FindInObjectMap(objName);
+	if (obj == nullptr)
+		return;
+
+	if (objName.find("player") != objName.npos)
+		dynamic_cast<Player*>(obj)->TakeDamage(damage);
+	else 
+		obj->TakeDamage(damage);
 }
