@@ -1,4 +1,7 @@
 #include "Player.h"
+#include "Ball.h"
+
+int Player::playerCount = 0;
 
 std::string PLAYER_TAG = "player";
 sf::Color START_COLOR = sf::Color::Green;
@@ -12,6 +15,9 @@ Player::Player(const int nr, const sf::IpAddress& ip, const unsigned short port,
 	ip(ip),
 	port(port)
 {
+	tag.append(std::to_string(playerCount++));
+	ball = new Ball(sf::Vector2f(0, 0), this);
+	hasShot = false;
 }
 
 
@@ -19,6 +25,12 @@ Player::~Player()
 {
 }
 
+
+void Player::Update(const sf::Time& dt)
+{
+	if (!hasShot)
+		ball->MoveToOwner();
+}
 
 const sf::IpAddress& Player::GetIP() const
 {
@@ -55,6 +67,12 @@ const sf::Vector2f & Player::GetSize() const
 }
 
 
+Ball* Player::GetBall() const
+{
+	return ball;
+}
+
+
 void Player::SetPosition(const float x, const float y)
 {
 	rect.setPosition(x, y);
@@ -64,4 +82,10 @@ void Player::SetPosition(const float x, const float y)
 void Player::SetPosition(const sf::Vector2f pos)
 {
 	rect.setPosition(pos);
+}
+
+
+void Player::Shoot(int direction)
+{
+	
 }

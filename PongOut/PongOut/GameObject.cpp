@@ -1,6 +1,7 @@
 #include "GameObject.h"
+#include "NetworkManager.h"
 
-
+NetworkManager* GameObject::manager = nullptr;
 
 GameObject::GameObject(const std::string& t, const sf::Color& color, const sf::Vector2f& size, const sf::Vector2f& pos) :
 	tag(t),
@@ -9,6 +10,7 @@ GameObject::GameObject(const std::string& t, const sf::Color& color, const sf::V
 	rect.setFillColor(color);
 	rect.setSize(size);
 	rect.setPosition(pos);
+	lastPos = rect.getPosition();
 }
 
 
@@ -17,14 +19,26 @@ GameObject::~GameObject()
 }
 
 
-void GameObject::Update(sf::Time dt)
+void GameObject::Update(const sf::Time& dt)
 {
 }
 
 
-bool GameObject::CheckCollision(sf::RectangleShape other)
+bool GameObject::CheckCollision(const GameObject& other)
 {
-	return rect.getGlobalBounds().intersects(other.getGlobalBounds());
+	bool collided = rect.getGlobalBounds().intersects(other.GetShape().getGlobalBounds());
+
+	if (collided)
+	{
+		OnCollision(other);
+	}
+
+	return collided;
+}
+
+
+void GameObject::OnCollision(const GameObject& other)
+{
 }
 
 
@@ -58,9 +72,20 @@ const std::string & GameObject::GetTag() const
 }
 
 
+void GameObject::SetTag(const std::string & newTag)
+{
+	tag = newTag;
+}
+
 void GameObject::SetPosition(const sf::Vector2f & position)
 {
 	rect.setPosition(position);
+}
+
+
+void GameObject::SetPosition(const float x, const float y)
+{
+	rect.setPosition(x, y);
 }
 
 

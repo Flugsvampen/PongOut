@@ -2,6 +2,7 @@
 #include "PacketOverloads.h"
 #include "Player.h"
 #include "Game.h"
+#include "Ball.h"
 
 #include <iostream>
 #include <thread>
@@ -15,11 +16,13 @@ Server::Server(Game* g) :
 	game(g)
 {
 	socket.bind(SERVER_PORT);
+	socket.setBlocking(false);
 
 	Bind("connect", std::bind(&Server::Connect, this, std::placeholders::_1, std::placeholders::_2));
 	Bind("move", std::bind(&Server::MovePlayer, this, std::placeholders::_1, std::placeholders::_2));
+	Bind("shoot", std::bind(&Server::Shoot, this, std::placeholders::_1, std::placeholders::_2));
 
-	receive = new std::thread(&Server::Receive, this);
+	//receive = new std::thread(&Server::Receive, this);
 }
 
 
@@ -54,16 +57,18 @@ void Server::Receive()
 	unsigned short senderPort;
 	std::string funcName;
 
-	while (running)
-	{
+	//while (running)
+	//{
 		// Receives data from the client
-		socket.receive(packet, senderIP, senderPort);
+		// TODO: Check return value
+		if (socket.receive(packet, senderIP, senderPort) != sf::Socket::Done)
+			return;
 
 		// Checks if we could extract the funcName from packet
 		if (!(packet >> funcName))
 		{
 			std::cerr << "Message from " << senderIP.toString() << " was not valid!" << std::endl;
-			continue;
+			return; //continue;
 		}
 
 		// Checks if the address and port trying to connect is already in use
@@ -84,12 +89,22 @@ void Server::Receive()
 				// Creates new player
 				player = new Player(game->players.size(), senderIP, senderPort, pos);
 				game->players.push_back(player);
+				game->AddObjectToMap(player);
+				game->AddObjectToMap(player->GetBall());
 
 				if (game->players.size() == 2)
 				{
-					game->framePackets[0] << "addPlayer" << sf::Vector2f(game->players[1]->GetPosition());
-
-					game->framePackets[1] << "addPlayer" << sf::Vector2f(game->players[1]->GetPosition()) << sf::Vector2f(game->players[0]->GetPosition());
+					for (int i = 0; i < 2; i++)
+					{
+						int j = 1 - i;
+						game->framePackets[i] << "addPlayer" <<
+							sf::Vector2f(game->players[i]->GetPosition()) <<
+							game->players[i]->GetTag() <<
+							game->players[i]->GetBall()->GetTag() <<
+							sf::Vector2f(game->players[j]->GetPosition()) <<
+							game->players[j]->GetTag() <<
+							game->players[j]->GetBall()->GetTag();
+					}
 				}
 			}
 		}
@@ -104,9 +119,7 @@ void Server::Receive()
 		// Checks if the function exists
 		else if (FoundInFunctionMap(funcName))
 			functionMap[funcName](packet, player);
-
-		game->SendFramePackets(this);
-	}
+	//}
 }
 
 // Sends message via our socket
@@ -121,7 +134,7 @@ void Server::Connect(sf::Packet& packet, Player* player)
 	std::cout << "Player from " << player->GetIP().toString() << " connected" << std::endl;
 
 	// Packs all the data the player holds
-	game->framePackets[player->GetNr()] << "connect" << sf::Vector2f(player->GetPosition());
+	//game->framePackets[player->GetNr()] << "connect" << sf::Vector2f(player->GetPosition());
 }
 
 // Moves the player that called the server
@@ -147,7 +160,18 @@ void Server::MovePlayer(sf::Packet& packet, Player* player)
 
 	int otherPlayer = 1 - player->GetNr();
 
-	game->framePackets.at(otherPlayer) << "move" << "player2" << sf::Vector2f(player->GetPosition());
+	std::unique_lock<std::mutex> lock(game->framePacketsMutex);
+	game->framePackets.at(otherPlayer) << "move" << player->GetTag() << sf::Vector2f(player->GetPosition());
+}
+
+
+void Server::Shoot(sf::Packet & packet, Player* player)
+{
+	float direction;
+	packet >> direction;
+
+	direction = (direction < 0) ? -1 : 1;
+	player->Shoot(direction);
 }
 
 // Tries to find the Player at the defined ip and port

@@ -15,7 +15,7 @@ NetworkManager::NetworkManager(Game* g) :
 
 	Initialize();
 
-	Player::manager = this;
+	GameObject::manager = this;
 
 	receive = new std::thread(&NetworkManager::Receive, this);
 }
@@ -66,7 +66,8 @@ void NetworkManager::Initialize()
 	while (true)
 	{
 		std::cout << "Write the address of the server you want to connect to: " << std::endl;
-		//std::cin >> serverIP;
+		int hej;
+		std::cin >> hej;
 
 		serverIP = "127.0.0.1";
 		sf::Packet packet;

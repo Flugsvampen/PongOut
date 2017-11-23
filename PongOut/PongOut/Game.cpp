@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "NetworkManager.h"
 #include "Player.h"
+#include "Ball.h"
 #include "PacketOverloads.h"
 #include "Keyboard.h"
 
@@ -10,8 +11,11 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 
 
+const int TICK_RATE = 1 / 60;
+
 Game::Game()
 {
+	//Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
 	Bind("connect", std::bind(&Game::Connect, this, std::placeholders::_1));
 	Bind("message", std::bind(&Game::Message, this, std::placeholders::_1));
 	Bind("addPlayer", std::bind(&Game::AddPlayer, this, std::placeholders::_1));
@@ -40,6 +44,9 @@ void Game::Run()
 	// The main loop - ends as soon as the window is closed
 	while (window.isOpen())
 	{
+		if (clock.getElapsedTime().asSeconds() < TICK_RATE)
+			continue;
+
 		dt = clock.restart();
 
 		// Event processing
@@ -69,9 +76,14 @@ void Game::Run()
 			GameObject* obj = it.second;
 
 			obj->Update(dt);
+
+			for (auto it2 : objectMap)
+			{
+				obj->CheckCollision(*it2.second);
+			}
+
 			window.draw(obj->GetShape());
 		}
-
 
 		// End the current frame and display its contents on screen
 		window.display();
@@ -129,10 +141,12 @@ bool Game::FoundInFunctionMap(const std::string& name)
 void Game::Connect(sf::Packet& packet)
 {
 	sf::Vector2f pos;
-	packet >> pos;
+	std::string tag;
+	packet >> pos >> tag;
 
-	player = new Player(pos);
+	player = new Player(pos, tag);
 	AddObjectToMap(player);
+	AddObjectToMap(player->GetBall());
 }
 
 
@@ -146,18 +160,28 @@ void Game::Message(sf::Packet & packet)
 
 void Game::AddPlayer(sf::Packet & packet)
 {
-	if (player == nullptr)
+	sf::Vector2f pos;
+	std::string tag;
+	std::string ballTag;
+
+	bool canInput = true;
+
+	for (int i = 0; i < 2; i++)
 	{
-		Connect(packet);
+		packet >> pos >> tag >> ballTag;
+
+		Player* newPlayer = new Player(pos, tag);
+		AddObjectToMap(newPlayer);
+		AddObjectToMap(newPlayer->GetBall());
+		newPlayer->SetCanInput(canInput);
+		newPlayer->GetBall()->SetTag(ballTag);
+
+		canInput = false;
+		if (i == 0)
+		{
+			player = newPlayer;
+		}
 	}
-
-	sf::Vector2f otherPos;
-	packet >> otherPos;
-
-	GameObject* otherPlayer = new GameObject("player2", player->GetColor(),
-		player->GetSize(), otherPos);
-
-	AddObjectToMap(otherPlayer);
 }
 
 void Game::MoveObject(sf::Packet& packet)

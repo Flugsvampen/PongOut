@@ -15,13 +15,21 @@ public:
 	const int GetNr() const;
 	const sf::Vector2f& GetPosition() const;
 	const sf::Vector2f& GetSize() const;
+	class Ball* GetBall() const;
 
 	void SetPosition(const float x, const float y);
 	void SetPosition(const sf::Vector2f pos);
+
+	void Update(const sf::Time& dt) override;
+	void Shoot(int direction);
 
 private:
 	sf::IpAddress ip;
 	unsigned short port;
 	int playerNr;
 	int speed;
+	class Ball* ball;
+	static int playerCount;
+	bool hasShot;
+
 };

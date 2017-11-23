@@ -37,5 +37,6 @@ private:
 	/* functionMap functions */
 	void Connect(sf::Packet& packet, class Player* player);
 	void MovePlayer(sf::Packet& packet, class Player* player);
+	void Shoot(sf::Packet& packet, class Player* player);
 };
 

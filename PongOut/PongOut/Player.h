@@ -9,15 +9,23 @@
 class Player : public GameObject
 {
 public:
-	Player(const sf::Vector2f& pos);
+	Player(const sf::Vector2f& pos, const std::string& tag);
 	~Player();
 
-	void Update(sf::Time dt) override;
+	void Update(const sf::Time& dt) override;
+	class Ball* GetBall() const;
+
+	void SetCanInput(bool can);
 
 private:
 	int speed;
+	static int playerCount;
 
-	friend class NetworkManager;
-	static class NetworkManager* manager;
+	class Ball* ball;
+	bool canInput;
+	bool hasShot;
+
+	int CheckMoveInput();
+	void ClampX();
 };
 

@@ -22,6 +22,8 @@ public:
 	void Run();
 	void CallFunction(sf::Packet& packet);
 
+	static sf::Packet framePacket;
+
 private:
 	StringToFunctionMap functionMap;
 	StringToObjMap objectMap;
