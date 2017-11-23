@@ -31,10 +31,6 @@ public:
 	virtual void TakeDamage(const int damage);
 	void UpdateLastPosition();
 
-
-
-
-
 protected:
 	friend class NetworkManager;
 	static class NetworkManager* manager;

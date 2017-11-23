@@ -15,6 +15,11 @@ const int TICK_RATE = 1 / 60;
 
 Game::Game()
 {
+	font.loadFromFile("trench100free.otf");
+	winLoseText = sf::Text("", font);
+	winLoseText.setOrigin(0.5f, 0.5f);
+	winLoseText.setPosition(400, 400);
+
 	GameObject::game = this;
 
 	/* Binds the functionMap methods */
@@ -23,6 +28,7 @@ Game::Game()
 	Bind("move", std::bind(&Game::MoveObject, this, std::placeholders::_1));
 	Bind("changeColor", std::bind(&Game::ChangeColor, this, std::placeholders::_1));
 	Bind("damage", std::bind(&Game::TakeDamage, this, std::placeholders::_1));
+	Bind("win", std::bind(&Game::WinGame, this, std::placeholders::_1));
 	
 	Keyboard::Initialize();
 }
@@ -90,6 +96,8 @@ void Game::Run()
 			window.draw(obj->GetShape());
 		}
 
+		if (winLoseText.getString() != "")
+			window.draw(winLoseText);
 		// End the current frame and display its contents on screen
 		window.display();
 	}
@@ -112,6 +120,34 @@ void Game::CallFunction(sf::Packet& packet)
 std::vector<class GameObject*> Game::GetPlayerObjects()
 {
 	return playerObjects;
+}
+
+
+void Game::SetWinLoseText(const std::string & text, const sf::Color& color = sf::Color::White)
+{
+	winLoseText.setFillColor(color);
+	winLoseText.setString(sf::String(text));
+}
+
+void Game::LoseGame()
+{
+	player->SetCanInput(false);
+	for (auto it : objectMap)
+	{
+		GameObject* obj = it.second;
+		std::string tag = obj->GetTag();
+		if(tag.find("player") != tag.npos || tag.find("ball") != tag.npos)
+			obj->SetColor(sf::Color::Black);
+	}
+
+	SendWinCommand();
+
+	SetWinLoseText("You Lost...", sf::Color::Red);
+}
+
+void Game::SetNetworkManager(NetworkManager * m)
+{
+	manager = m;
 }
 
 // Adds a function pointer to the functionMap
@@ -223,7 +259,6 @@ void Game::ChangeColor(sf::Packet & packet)
 	obj->SetColor(color);
 }
 
-
 // Makes the object found with the tag in the packet take damage
 void Game::TakeDamage(sf::Packet & packet)
 {
@@ -240,4 +275,27 @@ void Game::TakeDamage(sf::Packet & packet)
 		dynamic_cast<Player*>(obj)->TakeDamage(damage);
 	else 
 		obj->TakeDamage(damage);
+}
+
+// Tells the player that it won
+void Game::WinGame(sf::Packet& packet)
+{
+	player->SetCanInput(false);
+	for (auto it : objectMap)
+	{
+		GameObject* obj = it.second;
+		std::string tag = obj->GetTag();
+		if (tag.find("player") != tag.npos || tag.find("ball") != tag.npos)
+			obj->SetColor(sf::Color::Black);
+	}
+
+	winLoseText.setString("You Won!");
+}
+
+
+void Game::SendWinCommand()
+{
+	sf::Packet packet;
+	packet << "win";
+	manager->Send(packet);
 }

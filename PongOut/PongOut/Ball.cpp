@@ -9,7 +9,7 @@ int OOB_DAMAGE = 1;
 std::string BALL_TAG = "ball";
 sf::Color BALL_COLOR = sf::Color::Blue;
 sf::Vector2f BALL_SIZE = sf::Vector2f(20, 20);
-float BALL_SPEED = 300;
+float BALL_SPEED = 600;
 
 float MAX_BOUNCE_ANGLE = (180 / 3.14159265359) * 75;
 
@@ -124,7 +124,6 @@ void Ball::OnCollision(const GameObject& other)
 	// Flips Y-direction if a player was hit
 	if (other.GetTag().find("player") != other.GetTag().npos)
 	{
-
 		// Saves some variables from the ball and the other object
 		float ballWidth = rect.getSize().x;
 		float ballCenterX = GetPosition().x + ballWidth / 2;
@@ -140,12 +139,7 @@ void Ball::OnCollision(const GameObject& other)
 
 		// The new x-direction is calculated with the relative posX
 		direction.x = directionLength * posX;
-		// The y-value is inverted
-		if ((GetPosition().y < (other.GetPosition().y - other.GetSize().y) && other.GetPosition().y < 400) ||
-			((GetPosition().y + GetSize().y) > other.GetPosition().y && other.GetPosition().y > 400))
-		{
-			return;
-		}
+
 		direction.y *= -1;
 	}
 }

@@ -2,6 +2,7 @@
 #include "Ball.h"
 #include "NetworkManager.h"
 #include "Keyboard.h"
+#include "Game.h"
 #include <iostream>
 
 int Player::playerCount = 0;
@@ -31,6 +32,9 @@ Player::~Player()
 
 void Player::Update(const sf::Time& dt)
 {
+	if (!canInput)
+		return;
+
 	// Checks from left/right input
 	float direction = CheckMoveInput();
 	float movement = direction * dt.asSeconds();
@@ -79,9 +83,6 @@ void Player::SetHasShot(bool has)
 
 int Player::CheckMoveInput()
 {
-	if (!canInput)
-		return 0;
-
 	int input = 0;
 	if (Keyboard::isKeyDown(sf::Keyboard::Left))
 		input -= 1;
@@ -112,8 +113,16 @@ void Player::TakeDamage(int damage)
 	sf::Color c = sf::Color((255 / 5) * 5 - hp, (255 / 5) * hp, 0, 255);
 	rect.setFillColor(c);
 
-	// Sends the new color value to the other client
-	SendColorCommand();
+	if (hp > 0)
+	{
+		// Sends the new color value to the other client
+		SendColorCommand();
+	}
+	if (hp <= 0)
+	{
+		game->LoseGame();
+
+	}
 }
 
 

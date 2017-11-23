@@ -16,6 +16,7 @@ NetworkManager::NetworkManager(Game* g) :
 	Initialize();
 
 	GameObject::manager = this;
+	g->SetNetworkManager(this);
 
 	// Opens thread for receiving messages
 	receive = new std::thread(&NetworkManager::Receive, this);

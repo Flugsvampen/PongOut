@@ -10,6 +10,7 @@ public:
 
 private:
 	friend class GameObject;
+	friend class Game;
 
 	sf::UdpSocket socket;
 	sf::IpAddress serverIP;
