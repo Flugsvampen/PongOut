@@ -17,6 +17,7 @@ public:
 
 	void SetCanInput(bool can);
 	void SetHasShot(bool has);
+	void SetHp(int health);
 	void TakeDamage(const int damage) override;
 
 private:

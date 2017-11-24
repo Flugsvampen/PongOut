@@ -20,6 +20,7 @@ public:
 	const sf::Color& GetColor() const;
 	const sf::RectangleShape& GetShape() const;
 	const std::string& GetTag() const;
+	const int GetHp() const;
 
 	void SetTag(const std::string& newTag);
 	void SetColor(const sf::Color& color);
@@ -30,6 +31,8 @@ public:
 	void Move(float x = 0, float y = 0);
 	virtual void TakeDamage(const int damage);
 	void UpdateLastPosition();
+
+	virtual void ResetObject();
 
 protected:
 	friend class NetworkManager;
@@ -47,5 +50,9 @@ protected:
 	void SendColorCommand();
 	void SendDamageCommand(const int damage);
 	void SendDamageCommand(const int damage, const std::string& objectTag);
+
+	sf::Vector2f startPos;
+	sf::Color startColor;
+	sf::Vector2f startSize;
 };
 

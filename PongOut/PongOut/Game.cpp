@@ -7,18 +7,21 @@
 
 #include <iostream>
 #include <thread>
+#include <chrono>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 
 
 const int TICK_RATE = 1 / 60;
 
-Game::Game()
+Game::Game() :
+	canRestart(false),
+	gameOver(false)
 {
 	font.loadFromFile("trench100free.otf");
-	winLoseText = sf::Text("", font);
-	winLoseText.setOrigin(0.5f, 0.5f);
-	winLoseText.setPosition(400, 400);
+	winLoseText = sf::Text("", font, 100);
+	restartText = sf::Text("", font, 70);
+	restartText.setFillColor(sf::Color::White);
 
 	GameObject::game = this;
 
@@ -29,6 +32,8 @@ Game::Game()
 	Bind("changeColor", std::bind(&Game::ChangeColor, this, std::placeholders::_1));
 	Bind("damage", std::bind(&Game::TakeDamage, this, std::placeholders::_1));
 	Bind("win", std::bind(&Game::WinGame, this, std::placeholders::_1));
+	Bind("restart", std::bind(&Game::RestartGame, this, std::placeholders::_1));
+	Bind("walkover", std::bind(&Game::WalkOver, this, std::placeholders::_1));
 	
 	Keyboard::Initialize();
 }
@@ -63,8 +68,16 @@ void Game::Run()
 		while (window.pollEvent(event))
 		{
 			// Request for closing the window
-			if (event.type == sf::Event::Closed)
+			if (event.type == sf::Event::Closed || Keyboard::isKeyDown(sf::Keyboard::Escape))
+			{
+				if (!gameOver)
+				{
+					sf::Packet p;
+					p << "disconnect";
+					manager->Send(p);
+				}
 				window.close();
+			}
 			else if (event.type == sf::Event::KeyPressed)
 			{
 				Keyboard::setKeyDown(event.key.code);
@@ -76,28 +89,55 @@ void Game::Run()
 			else if (event.type == sf::Event::LostFocus || event.type == sf::Event::GainedFocus)
 				Keyboard::clearKeys();
 		}
+
 		// Clear the whole window before rendering a new frame
 		window.clear(sf::Color::Black);
-
-		// Updates all objects
-		for (auto it : objectMap)
+		if (!gameOver)
 		{
-			GameObject* obj = it.second;
+			// Updates all objects
+			for (auto it : objectMap)
+			{
+				GameObject* obj = it.second;
+				if (obj == nullptr)
+					break;
 
-			obj->Update(dt);
+				obj->Update(dt);
 
-			// Checks collision with every other object
-			for (auto it2 : objectMap)
-			{ 
-				obj->CheckCollision(*it2.second);
+				if (gameOver)
+					break;
+
+				// Checks collision with every other object
+				for (auto it2 : objectMap)
+				{
+					obj->CheckCollision(*it2.second);
+				}
+
+				obj->UpdateLastPosition();
+
+				window.draw(obj->GetShape());
 			}
-
-			obj->UpdateLastPosition();
-			window.draw(obj->GetShape());
 		}
-
-		if (winLoseText.getString() != "")
+		else if(gameOver)
+		{
 			window.draw(winLoseText);
+			window.draw(restartText);
+
+			// If the other player didn't leave the game
+			if (!walkOver)
+			{
+				if (canRestart && Keyboard::isKeyDown(sf::Keyboard::R))
+				{
+					canRestart = false;
+
+					// Tells the server that this player is ready for another game
+					sf::Packet p;
+					p << "ready";
+					manager->Send(p);
+
+					restartText.setString(restartText.getString() + "\n(1 / 2) players ready");
+				}
+			}
+		}
 		// End the current frame and display its contents on screen
 		window.display();
 	}
@@ -127,22 +167,6 @@ void Game::SetWinLoseText(const std::string & text, const sf::Color& color = sf:
 {
 	winLoseText.setFillColor(color);
 	winLoseText.setString(sf::String(text));
-}
-
-void Game::LoseGame()
-{
-	player->SetCanInput(false);
-	for (auto it : objectMap)
-	{
-		GameObject* obj = it.second;
-		std::string tag = obj->GetTag();
-		if(tag.find("player") != tag.npos || tag.find("ball") != tag.npos)
-			obj->SetColor(sf::Color::Black);
-	}
-
-	SendWinCommand();
-
-	SetWinLoseText("You Lost...", sf::Color::Red);
 }
 
 void Game::SetNetworkManager(NetworkManager * m)
@@ -280,16 +304,72 @@ void Game::TakeDamage(sf::Packet & packet)
 // Tells the player that it won
 void Game::WinGame(sf::Packet& packet)
 {
-	player->SetCanInput(false);
+	SetWonOrLostGame(false);
+}
+
+// Restarts the game
+void Game::RestartGame(sf::Packet & packet)
+{
+	gameOver = false;
+	walkOver = false;
+
+	// Resets values in all gameObjects
 	for (auto it : objectMap)
 	{
-		GameObject* obj = it.second;
-		std::string tag = obj->GetTag();
-		if (tag.find("player") != tag.npos || tag.find("ball") != tag.npos)
-			obj->SetColor(sf::Color::Black);
+		it.second->ResetObject();
+	}
+	player->GetBall()->SetDirection();
+	player->SetHasShot(false);
+	player->SetHp(5);
+}
+
+// This function is called when the other player disconnects
+void Game::WalkOver(sf::Packet & packet)
+{
+	gameOver = true;
+	walkOver = true;
+
+	SetWinLoseText("The other player left.\nYou won by walkover!");
+	winLoseText.setCharacterSize(80);
+	winLoseText.setOrigin(winLoseText.getGlobalBounds().width / 2, winLoseText.getGlobalBounds().height / 2);
+	winLoseText.setPosition(400, 400);
+	
+	restartText.setString("Press Esc to exit the game");
+	restartText.setOrigin(restartText.getGlobalBounds().width / 2, restartText.getGlobalBounds().height / 2);
+	restartText.setPosition(400, 700);
+}
+
+
+void Game::SetWonOrLostGame(bool lost)
+{
+	// Sets the game to over
+	gameOver = true;
+	canRestart = true;
+
+	std::string winLoseString;
+	sf::Color textColor;
+
+	// Checks if we won or lost and changes the text depending on that
+	if (lost)
+	{
+		SendWinCommand();
+		winLoseString = "You lost...";
+		textColor = sf::Color::Red;
+	}
+	else
+	{
+		winLoseString = "You won!";
+		textColor = sf::Color::Green;
 	}
 
-	winLoseText.setString("You Won!");
+	// Sets text values so the text objects becomes visible
+	SetWinLoseText(winLoseString, textColor);
+	winLoseText.setOrigin(winLoseText.getGlobalBounds().width/2, winLoseText.getGlobalBounds().height/2);
+	winLoseText.setPosition(400, 400);
+
+	restartText.setString("Press 'R' to restart");
+	restartText.setOrigin(restartText.getGlobalBounds().width/2, restartText.getGlobalBounds().height/2);
+	restartText.setPosition(400, 600);
 }
 
 

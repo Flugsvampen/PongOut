@@ -7,11 +7,11 @@
 
 int Player::playerCount = 0;
 
-std::string PLAYER_TAG = "player";
-sf::Color START_COLOR = sf::Color::Green;
-sf::Vector2f START_SIZE = sf::Vector2f(100, 25);
-float START_SPEED = 400;
-int START_HP = 5;
+const std::string PLAYER_TAG = "player";
+const sf::Color START_COLOR = sf::Color::Green;
+const sf::Vector2f START_SIZE = sf::Vector2f(100, 25);
+const float START_SPEED = 400;
+const int START_HP = 5;
 
 Player::Player(const sf::Vector2f& pos) :
 	GameObject::GameObject(PLAYER_TAG, START_COLOR, START_SIZE, pos),
@@ -81,6 +81,12 @@ void Player::SetHasShot(bool has)
 }
 
 
+void Player::SetHp(int health)
+{
+	hp = health;
+}
+
+
 int Player::CheckMoveInput()
 {
 	int input = 0;
@@ -110,7 +116,7 @@ void Player::TakeDamage(int damage)
 {
 	hp -= damage;
 	// Sets the players color based on how much hp they have
-	sf::Color c = sf::Color((255 / 5) * 5 - hp, (255 / 5) * hp, 0, 255);
+	sf::Color c = sf::Color((255 / START_HP) * START_HP - hp, (255 / START_HP) * hp, 0, 255);
 	rect.setFillColor(c);
 
 	if (hp > 0)
@@ -120,8 +126,7 @@ void Player::TakeDamage(int damage)
 	}
 	if (hp <= 0)
 	{
-		game->LoseGame();
-
+		game->SetWonOrLostGame(true);
 	}
 }
 

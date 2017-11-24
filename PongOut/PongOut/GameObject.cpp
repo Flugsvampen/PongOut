@@ -15,6 +15,9 @@ GameObject::GameObject(const std::string& t, const sf::Color& color, const sf::V
 	rect.setSize(size);
 	rect.setPosition(pos);
 	lastPos = rect.getPosition();
+	startPos = pos;
+	startColor = color;
+	startSize = size;
 }
 
 
@@ -106,6 +109,11 @@ const std::string & GameObject::GetTag() const
 	return tag;
 }
 
+const int GameObject::GetHp() const
+{
+	return hp;
+}
+
 
 void GameObject::SetTag(const std::string & newTag)
 {
@@ -151,4 +159,11 @@ void GameObject::TakeDamage(const int damage)
 void GameObject::UpdateLastPosition()
 {
 	lastPos = rect.getPosition();
+}
+
+void GameObject::ResetObject()
+{
+	rect.setPosition(startPos);
+	rect.setFillColor(startColor);
+	rect.setSize(startSize);
 }

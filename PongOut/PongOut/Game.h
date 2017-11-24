@@ -24,7 +24,7 @@ public:
 	void CallFunction(sf::Packet& packet);
 	std::vector<class GameObject*> GetPlayerObjects();
 	void SetWinLoseText(const std::string& text, const sf::Color& color);
-	void LoseGame();
+	void SetWonOrLostGame(bool lost);
 	void SetNetworkManager(class NetworkManager* m);
 
 	static sf::Packet framePacket;
@@ -33,6 +33,10 @@ private:
 	StringToFunctionMap functionMap;
 	StringToObjMap objectMap;
 	class NetworkManager* manager;
+
+	bool canRestart;
+	bool gameOver;
+	bool walkOver;
 
 	bool Bind(const std::string& name, GameFunction func);
 	bool FoundInFunctionMap(const std::string& name);
@@ -49,11 +53,14 @@ private:
 	void ChangeColor(sf::Packet& packet);
 	void TakeDamage(sf::Packet& packet);
 	void WinGame(sf::Packet& packet);
+	void RestartGame(sf::Packet& packet);
+	void WalkOver(sf::Packet& packet);
 
 	class Player* player;
 	std::vector<class GameObject*> playerObjects;
 
 	sf::Font font;
 	sf::Text winLoseText;
+	sf::Text restartText;
 };
 

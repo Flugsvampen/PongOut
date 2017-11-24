@@ -69,10 +69,8 @@ void NetworkManager::Initialize()
 	while (true)
 	{
 		std::cout << "Write the address of the server you want to connect to: " << std::endl;
-		int hej;
-		std::cin >> hej;
+		std::cin >> serverIP;
 
-		serverIP = "127.0.0.1";
 		sf::Packet packet;
 		packet << "connect";
 		std::cout << "Connecting...";

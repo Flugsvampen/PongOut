@@ -5,13 +5,13 @@
 
 int Ball::ballCount = 0;
 
-int OOB_DAMAGE = 1;
-std::string BALL_TAG = "ball";
-sf::Color BALL_COLOR = sf::Color::Blue;
-sf::Vector2f BALL_SIZE = sf::Vector2f(20, 20);
-float BALL_SPEED = 600;
+const int OOB_DAMAGE = 1;
+const std::string BALL_TAG = "ball";
+const sf::Color BALL_COLOR = sf::Color::Blue;
+const sf::Vector2f BALL_SIZE = sf::Vector2f(20, 20);
+const float BALL_SPEED = 600;
 
-float MAX_BOUNCE_ANGLE = (180 / 3.14159265359) * 75;
+const float MAX_BOUNCE_ANGLE = (180 / 3.14159265359) * 75;
 
 Ball::Ball(const sf::Vector2f& pos, class Player* player) :
 	GameObject::GameObject(BALL_TAG, BALL_COLOR, BALL_SIZE, pos),
@@ -21,6 +21,7 @@ Ball::Ball(const sf::Vector2f& pos, class Player* player) :
 {
 	//tag.append(std::to_string(ballCount++));
 	MoveToOwner();
+	startPos = rect.getPosition();
 }
 
 
@@ -70,6 +71,11 @@ void Ball::Shoot(const float dirX)
 	direction = sf::Vector2f(dirX, dirY);
 }
 
+void Ball::SetDirection(const sf::Vector2f & dir)
+{
+	direction = dir;
+}
+
 // Flips X-direction and sets position to align on the hit wall
 void Ball::Bounce()
 {
@@ -113,7 +119,8 @@ void Ball::CheckOOB()
 			}
 
 			// Moves the ball back to its owner
-			MoveToOwner();
+			if(owner->GetHp() > 0)
+				MoveToOwner();
 		}
 	}
 }
@@ -141,5 +148,7 @@ void Ball::OnCollision(const GameObject& other)
 		direction.x = directionLength * posX;
 
 		direction.y *= -1;
+
+		speed *= 1.05f;
 	}
 }

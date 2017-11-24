@@ -11,6 +11,7 @@ public:
 
 	void MoveToOwner();
 	void Shoot(const float dir);
+	void SetDirection(const sf::Vector2f& dir = sf::Vector2f(0,0));
 
 private:
 	void Bounce();
